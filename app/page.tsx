@@ -1,6 +1,7 @@
 import { Carousel } from 'components/carousel';
 import { ThreeItemGrid } from 'components/grid/three-items';
 import Footer from 'components/layout/footer';
+import { MovingProductCards } from 'components/moving-product-cards';
 
 export const metadata = {
   description:
@@ -10,11 +11,12 @@ export const metadata = {
   }
 };
 
-export default function HomePage() {
+export default async function HomePage() {
   return (
     <>
       <ThreeItemGrid />
       <Carousel />
+      <MovingProductCards />
       <Footer />
     </>
   );

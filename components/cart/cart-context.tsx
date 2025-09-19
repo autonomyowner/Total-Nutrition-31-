@@ -1,17 +1,17 @@
 'use client';
 
 import type {
-  Cart,
-  CartItem,
-  Product,
-  ProductVariant
-} from 'lib/shopify/types';
+    Cart,
+    CartItem,
+    Product,
+    ProductVariant
+} from 'lib/types';
 import React, {
-  createContext,
-  use,
-  useContext,
-  useMemo,
-  useOptimistic
+    createContext,
+    use,
+    useContext,
+    useMemo,
+    useOptimistic
 } from 'react';
 
 type UpdateType = 'plus' | 'minus' | 'delete';
@@ -74,7 +74,7 @@ function createOrUpdateCartItem(
   const totalAmount = calculateItemCost(quantity, variant.price.amount);
 
   return {
-    id: existingItem?.id,
+    id: existingItem?.id || `temp-${Date.now()}`,
     quantity,
     cost: {
       totalAmount: {
@@ -86,12 +86,7 @@ function createOrUpdateCartItem(
       id: variant.id,
       title: variant.title,
       selectedOptions: variant.selectedOptions,
-      product: {
-        id: product.id,
-        handle: product.handle,
-        title: product.title,
-        featuredImage: product.featuredImage
-      }
+      product: product
     }
   };
 }
@@ -118,7 +113,7 @@ function updateCartTotals(
 
 function createEmptyCart(): Cart {
   return {
-    id: undefined,
+    id: 'empty-cart',
     checkoutUrl: '',
     totalQuantity: 0,
     lines: [],

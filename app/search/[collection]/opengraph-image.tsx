@@ -1,13 +1,14 @@
-import OpengraphImage from 'components/opengraph-image';
-import { getCollection } from 'lib/shopify';
+// Temporarily disabled due to path issues with spaces in directory name
+// import OpengraphImage from 'components/opengraph-image';
+// import { getCollection } from 'lib/shopify';
 
 export default async function Image({
   params
 }: {
   params: { collection: string };
 }) {
-  const collection = await getCollection(params.collection);
-  const title = collection?.seo?.title || collection?.title;
-
-  return await OpengraphImage({ title });
+  // const collection = await getCollection(params.collection);
+  // const title = collection?.seo?.title || collection?.title;
+  // return await OpengraphImage({ title });
+  return new Response('Opengraph image temporarily disabled', { status: 404 });
 }

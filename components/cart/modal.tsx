@@ -1,8 +1,8 @@
 'use client';
 
-import clsx from 'clsx';
 import { Dialog, Transition } from '@headlessui/react';
 import { ShoppingCartIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
 import LoadingDots from 'components/loading-dots';
 import Price from 'components/price';
 import { DEFAULT_OPTION } from 'lib/constants';
@@ -198,8 +198,8 @@ export default function CartModal() {
                       <p>Taxes</p>
                       <Price
                         className="text-right text-base text-black dark:text-white"
-                        amount={cart.cost.totalTaxAmount.amount}
-                        currencyCode={cart.cost.totalTaxAmount.currencyCode}
+                        amount={cart.cost.totalTaxAmount?.amount || '0.00'}
+                        currencyCode={cart.cost.totalTaxAmount?.currencyCode || 'USD'}
                       />
                     </div>
                     <div className="mb-3 flex items-center justify-between border-b border-neutral-200 pb-1 pt-1 dark:border-neutral-700">

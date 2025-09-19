@@ -1,4 +1,4 @@
-import { getCollections, getPages, getProducts } from 'lib/shopify';
+import { getCollections, getPages, getProducts } from 'lib/data';
 import { baseUrl, validateEnvironmentVariables } from 'lib/utils';
 import { MetadataRoute } from 'next';
 
@@ -17,36 +17,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date().toISOString()
   }));
 
-  const collectionsPromise = getCollections().then((collections) =>
-    collections.map((collection) => ({
-      url: `${baseUrl}${collection.path}`,
-      lastModified: collection.updatedAt
-    }))
-  );
+  const collections = getCollections().map((collection) => ({
+    url: `${baseUrl}/search/${collection.handle}`,
+    lastModified: new Date().toISOString()
+  }));
 
-  const productsPromise = getProducts({}).then((products) =>
-    products.map((product) => ({
-      url: `${baseUrl}/product/${product.handle}`,
-      lastModified: product.updatedAt
-    }))
-  );
+  const products = getProducts({}).map((product) => ({
+    url: `${baseUrl}/product/${product.handle}`,
+    lastModified: new Date().toISOString()
+  }));
 
-  const pagesPromise = getPages().then((pages) =>
-    pages.map((page) => ({
-      url: `${baseUrl}/${page.handle}`,
-      lastModified: page.updatedAt
-    }))
-  );
+  const pages = getPages().map((page) => ({
+    url: `${baseUrl}/${page.handle}`,
+    lastModified: page.updatedAt
+  }));
 
-  let fetchedRoutes: Route[] = [];
-
-  try {
-    fetchedRoutes = (
-      await Promise.all([collectionsPromise, productsPromise, pagesPromise])
-    ).flat();
-  } catch (error) {
-    throw JSON.stringify(error, null, 2);
-  }
+  const fetchedRoutes: Route[] = [...collections, ...products, ...pages];
 
   return [...routesMap, ...fetchedRoutes];
 }

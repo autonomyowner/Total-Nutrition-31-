@@ -1,6 +1,9 @@
-import { revalidate } from 'lib/shopify';
 import { NextRequest, NextResponse } from 'next/server';
 
+export const revalidate = false;
+
+// Simple revalidation for local data
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  return revalidate(req);
+  // For now, just return success since we're using local data
+  return NextResponse.json({ revalidated: true, now: Date.now() });
 }

@@ -1,12 +1,12 @@
 import { CartProvider } from 'components/cart/cart-context';
+import { FloatingSocialButtons } from 'components/floating-social-buttons';
 import { Navbar } from 'components/layout/navbar';
-import { WelcomeToast } from 'components/welcome-toast';
 import { GeistSans } from 'geist/font/sans';
-import { getCart } from 'lib/shopify';
+import { getCart } from 'lib/data';
+import { baseUrl } from 'lib/utils';
 import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import './globals.css';
-import { baseUrl } from 'lib/utils';
 
 const { SITE_NAME } = process.env;
 
@@ -38,8 +38,8 @@ export default async function RootLayout({
           <main>
             {children}
             <Toaster closeButton />
-            <WelcomeToast />
           </main>
+          <FloatingSocialButtons />
         </CartProvider>
       </body>
     </html>

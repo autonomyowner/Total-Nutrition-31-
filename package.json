@@ -1,4 +1,6 @@
 {
+  "name": "total-nutrition",
+  "description": "Total Nutrition - High-performance ecommerce application",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
