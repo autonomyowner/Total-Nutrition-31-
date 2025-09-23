@@ -39,13 +39,23 @@ export function EditItemQuantityButton({
   optimisticUpdate: any;
 }) {
   const [message, formAction] = useActionState(updateItemQuantity, null);
+  const nextQuantity =
+    type === 'plus' ? item.quantity + 1 : Math.max(1, item.quantity - 1);
+  const shouldUpdate = !(type === 'minus' && item.quantity <= 1);
 
   return (
     <form
-      action={formAction}
+      action={async (formData: FormData) => {
+        if (!shouldUpdate) {
+          return;
+        }
+
+        optimisticUpdate(item.merchandise.id, type);
+        await formAction(formData);
+      }}
     >
       <input type="hidden" name="merchandiseId" value={item.merchandise.id} />
-      <input type="hidden" name="quantity" value={type === 'plus' ? item.quantity + 1 : item.quantity - 1} />
+      <input type="hidden" name="quantity" value={nextQuantity} />
       <SubmitButton type={type} />
       <p aria-live="polite" className="sr-only" role="status">
         {message}

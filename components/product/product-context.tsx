@@ -1,7 +1,12 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { createContext, useContext, useMemo, useOptimistic } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useOptimistic
+} from 'react';
 
 type ProductState = {
   [key: string]: string;
@@ -57,7 +62,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     [state]
   );
 
-  return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
+  return (
+    <ProductContext.Provider value={value}>{children}</ProductContext.Provider>
+  );
 }
 
 export function useProduct() {

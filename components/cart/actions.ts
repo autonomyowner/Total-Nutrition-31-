@@ -1,12 +1,28 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { DEFAULT_CURRENCY_CODE, TAGS } from 'lib/constants';
+import {
+  createEmptyCart,
+  findProductByVariantId,
+  loadCart,
+  saveCart
+} from 'lib/data';
+import type { Cart, CartItem } from 'lib/types';
 
-// Simple local cart storage using cookies
-const CART_COOKIE = 'cart';
+function formatAmount(amount: number) {
+  return amount.toFixed(2);
+}
+
+function persistCart(cart: Cart, lines: CartItem[]) {
+  const updatedCart = saveCart({ ...cart, lines });
+  revalidateTag(TAGS.cart);
+  return updatedCart;
+}
 
 export async function addItem(
-  prevState: any,
+  _prevState: unknown,
   selectedVariantId: string | undefined
 ) {
   if (!selectedVariantId) {
@@ -14,61 +30,171 @@ export async function addItem(
   }
 
   try {
-    // For now, just return success - we'll implement proper cart logic later
-    revalidateTag('cart');
+    const productData = findProductByVariantId(selectedVariantId);
+
+    if (!productData) {
+      return 'Product not found';
+    }
+
+    const cart = loadCart();
+    const { product, variant } = productData;
+    const currencyCode = variant.price.currencyCode ?? DEFAULT_CURRENCY_CODE;
+    const existingLine = cart.lines.find(
+      (line) => line.merchandise.id === variant.id
+    );
+
+    let updatedLines: CartItem[];
+
+    if (existingLine) {
+      const newQuantity = existingLine.quantity + 1;
+      const unitPrice =
+        existingLine.quantity > 0
+          ? Number(existingLine.cost.totalAmount.amount) / existingLine.quantity
+          : Number(existingLine.cost.totalAmount.amount);
+      const lineTotal = formatAmount(unitPrice * newQuantity);
+
+      updatedLines = cart.lines.map((line) =>
+        line.merchandise.id === variant.id
+          ? {
+              ...line,
+              quantity: newQuantity,
+              cost: {
+                totalAmount: {
+                  amount: lineTotal,
+                  currencyCode
+                }
+              }
+            }
+          : line
+      );
+    } else {
+      const newLine: CartItem = {
+        id: `line-${variant.id}`,
+        quantity: 1,
+        cost: {
+          totalAmount: {
+            amount: formatAmount(Number(variant.price.amount)),
+            currencyCode
+          }
+        },
+        merchandise: {
+          id: variant.id,
+          title: variant.title,
+          selectedOptions: variant.selectedOptions,
+          product
+        }
+      };
+
+      updatedLines = [...cart.lines, newLine];
+    }
+
+    persistCart(cart, updatedLines);
+
     return 'Item added to cart';
-  } catch (e) {
+  } catch (error) {
+    console.error('Failed to add item to cart', error);
     return 'Error adding item to cart';
   }
 }
 
-export async function removeItem(prevState: any, merchandiseId: string) {
+export async function removeItem(_prevState: unknown, merchandiseId: string) {
+  if (!merchandiseId) {
+    return 'Missing product variant ID';
+  }
+
   try {
-    // For now, just return success - we'll implement proper cart logic later
-    revalidateTag('cart');
+    const cart = loadCart();
+    const updatedLines = cart.lines.filter(
+      (line) => line.merchandise.id !== merchandiseId
+    );
+
+    persistCart(cart, updatedLines);
     return 'Item removed from cart';
-  } catch (e) {
+  } catch (error) {
+    console.error('Failed to remove item from cart', error);
     return 'Error removing item from cart';
   }
 }
 
 export async function updateItemQuantity(
-  prevState: any,
+  _prevState: unknown,
   formData: FormData
 ) {
   try {
     const merchandiseId = formData.get('merchandiseId') as string;
-    const quantity = parseInt(formData.get('quantity') as string);
-    
-    // For now, just return success - we'll implement proper cart logic later
-    revalidateTag('cart');
+    const quantityValue = Number(formData.get('quantity'));
+
+    if (!merchandiseId || Number.isNaN(quantityValue)) {
+      return 'Invalid quantity';
+    }
+
+    const nextQuantity = Math.max(1, Math.floor(quantityValue));
+    const cart = loadCart();
+    const existingLine = cart.lines.find(
+      (line) => line.merchandise.id === merchandiseId
+    );
+
+    if (!existingLine) {
+      return 'Item not found in cart';
+    }
+
+    const unitPrice =
+      existingLine.quantity > 0
+        ? Number(existingLine.cost.totalAmount.amount) / existingLine.quantity
+        : Number(existingLine.cost.totalAmount.amount);
+    const lineTotal = formatAmount(unitPrice * nextQuantity);
+    const currencyCode =
+      existingLine.cost.totalAmount.currencyCode ?? DEFAULT_CURRENCY_CODE;
+
+    const updatedLines = cart.lines.map((line) =>
+      line.merchandise.id === merchandiseId
+        ? {
+            ...line,
+            quantity: nextQuantity,
+            cost: {
+              totalAmount: {
+                amount: lineTotal,
+                currencyCode
+              }
+            }
+          }
+        : line
+    );
+
+    persistCart(cart, updatedLines);
     return 'Cart updated';
-  } catch (e) {
+  } catch (error) {
+    console.error('Failed to update cart quantity', error);
     return 'Error updating cart';
   }
 }
 
 export async function createCart() {
-  // For now, return a simple cart object
-  return {
-    id: 'local-cart',
-    checkoutUrl: '#',
-    cost: {
-      subtotalAmount: { amount: '0.00', currencyCode: 'USD' },
-      totalAmount: { amount: '0.00', currencyCode: 'USD' }
-    },
-    lines: [],
-    totalQuantity: 0
-  };
+  try {
+    const cart = saveCart(createEmptyCart());
+    revalidateTag(TAGS.cart);
+    return cart;
+  } catch (error) {
+    console.error('Failed to create cart', error);
+    return createEmptyCart();
+  }
 }
 
 export async function createCartAndSetCookie() {
-  // For now, just return success - we'll implement proper cart logic later
-  return 'Cart created';
+  try {
+    const cart = loadCart();
+    saveCart(cart);
+    revalidateTag(TAGS.cart);
+    return 'Cart ready';
+  } catch (error) {
+    console.error('Failed to initialize cart', error);
+    saveCart(createEmptyCart());
+    revalidateTag(TAGS.cart);
+    return 'Cart ready';
+  }
 }
 
-export async function redirectToCheckout(formData: FormData) {
-  // For now, just return success - we'll implement proper checkout logic later
-  // In a real implementation, this would redirect to a checkout page or contact form
-  console.log('Redirecting to checkout...');
+export async function redirectToCheckout() {
+  const cart = loadCart();
+  redirect(cart.checkoutUrl || '/contact');
 }

@@ -1,18 +1,14 @@
 'use client';
 
-import type {
-    Cart,
-    CartItem,
-    Product,
-    ProductVariant
-} from 'lib/types';
+import type { Cart, CartItem, Product, ProductVariant } from 'lib/types';
 import React, {
-    createContext,
-    use,
-    useContext,
-    useMemo,
-    useOptimistic
+  createContext,
+  use,
+  useContext,
+  useMemo,
+  useOptimistic
 } from 'react';
+import { DEFAULT_CURRENCY_CODE, DEFAULT_OPTION } from 'lib/constants';
 
 type UpdateType = 'plus' | 'minus' | 'delete';
 
@@ -33,7 +29,7 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 function calculateItemCost(quantity: number, price: string): string {
-  return (Number(price) * quantity).toString();
+  return (Number(price) * quantity).toFixed(2);
 }
 
 function updateCartItem(
@@ -99,28 +95,30 @@ function updateCartTotals(
     (sum, item) => sum + Number(item.cost.totalAmount.amount),
     0
   );
-  const currencyCode = lines[0]?.cost.totalAmount.currencyCode ?? 'USD';
+  const currencyCode =
+    lines[0]?.cost.totalAmount.currencyCode ?? DEFAULT_CURRENCY_CODE;
+  const formattedTotal = totalAmount.toFixed(2);
 
   return {
     totalQuantity,
     cost: {
-      subtotalAmount: { amount: totalAmount.toString(), currencyCode },
-      totalAmount: { amount: totalAmount.toString(), currencyCode },
-      totalTaxAmount: { amount: '0', currencyCode }
+      subtotalAmount: { amount: formattedTotal, currencyCode },
+      totalAmount: { amount: formattedTotal, currencyCode },
+      totalTaxAmount: { amount: '0.00', currencyCode }
     }
   };
 }
 
 function createEmptyCart(): Cart {
   return {
-    id: 'empty-cart',
-    checkoutUrl: '',
+    id: 'local-cart',
+    checkoutUrl: '/contact',
     totalQuantity: 0,
     lines: [],
     cost: {
-      subtotalAmount: { amount: '0', currencyCode: 'USD' },
-      totalAmount: { amount: '0', currencyCode: 'USD' },
-      totalTaxAmount: { amount: '0', currencyCode: 'USD' }
+      subtotalAmount: { amount: '0.00', currencyCode: DEFAULT_CURRENCY_CODE },
+      totalAmount: { amount: '0.00', currencyCode: DEFAULT_CURRENCY_CODE },
+      totalTaxAmount: { amount: '0.00', currencyCode: DEFAULT_CURRENCY_CODE }
     }
   };
 }
@@ -140,14 +138,12 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
         .filter(Boolean) as CartItem[];
 
       if (updatedLines.length === 0) {
+        const emptyCart = createEmptyCart();
         return {
           ...currentCart,
-          lines: [],
-          totalQuantity: 0,
-          cost: {
-            ...currentCart.cost,
-            totalAmount: { ...currentCart.cost.totalAmount, amount: '0' }
-          }
+          lines: emptyCart.lines,
+          totalQuantity: emptyCart.totalQuantity,
+          cost: emptyCart.cost
         };
       }
 

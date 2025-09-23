@@ -5,7 +5,7 @@ import { ShoppingCartIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import LoadingDots from 'components/loading-dots';
 import Price from 'components/price';
-import { DEFAULT_OPTION } from 'lib/constants';
+import { DEFAULT_CURRENCY_CODE, DEFAULT_OPTION } from 'lib/constants';
 import { createUrl } from 'lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -199,7 +199,10 @@ export default function CartModal() {
                       <Price
                         className="text-right text-base text-black dark:text-white"
                         amount={cart.cost.totalTaxAmount?.amount || '0.00'}
-                        currencyCode={cart.cost.totalTaxAmount?.currencyCode || 'USD'}
+                        currencyCode={
+                          cart.cost.totalTaxAmount?.currencyCode ||
+                          DEFAULT_CURRENCY_CODE
+                        }
                       />
                     </div>
                     <div className="mb-3 flex items-center justify-between border-b border-neutral-200 pb-1 pt-1 dark:border-neutral-700">
@@ -211,7 +214,10 @@ export default function CartModal() {
                       <Price
                         className="text-right text-base text-black dark:text-white"
                         amount={cart.cost.totalAmount.amount}
-                        currencyCode={cart.cost.totalAmount.currencyCode}
+                        currencyCode={
+                          cart.cost.totalAmount.currencyCode ||
+                          DEFAULT_CURRENCY_CODE
+                        }
                       />
                     </div>
                   </div>
