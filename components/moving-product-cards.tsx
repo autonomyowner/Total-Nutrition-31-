@@ -1,6 +1,7 @@
 import { getProducts } from 'lib/data';
 import type { Product } from 'lib/types';
 import Link from 'next/link';
+import Image from 'next/image';
 import Price from './price';
 
 interface ProductCardProps {
@@ -15,10 +16,12 @@ function ProductCard({ product }: ProductCardProps) {
         className="block bg-white dark:bg-neutral-800 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden"
       >
         <div className="relative h-48 w-full">
-          <img
+          <Image
             src={product.featuredImage.url}
             alt={product.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 80vw, 320px"
+            className="object-cover"
           />
         </div>
         <div className="p-4">

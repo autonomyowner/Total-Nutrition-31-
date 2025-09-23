@@ -1,7 +1,13 @@
-// Temporarily disabled due to path issues with spaces in directory name
-// import OpengraphImage from 'components/opengraph-image';
-
 export default async function Image() {
-  // return await OpengraphImage();
-  return new Response('Opengraph image temporarily disabled', { status: 404 });
+  try {
+    const { default: OpengraphImage } = await import(
+      'components/opengraph-image'
+    );
+    return await OpengraphImage();
+  } catch (error) {
+    console.error('Failed to generate Open Graph image', error);
+    return new Response('Opengraph image temporarily unavailable', {
+      status: 500
+    });
+  }
 }

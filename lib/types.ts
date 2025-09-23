@@ -34,6 +34,8 @@ export interface Product {
     description?: string;
   };
   updatedAt: string;
+  createdAt?: string;
+  salesRank?: number;
 }
 
 export interface ProductVariant {
